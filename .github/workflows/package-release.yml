@@ -1,0 +1,60 @@
+name: Package Release
+on:
+  release:
+    types:
+      - published
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout master
+      uses: actions/checkout@v2
+    - name: Get tag
+      run: echo ::set-output name=TAG::$(echo $GITHUB_REF | cut -d / -f 3)
+      id: get_tag
+    - name: Set filenames
+      run: |
+        echo "DAYFILE=TVA-Training-Caucasus-${{ steps.get_tag.outputs.TAG }}.miz" >> $GITHUB_ENV
+        echo "NIGHTFILE=TVA-Training-Caucasus-${{ steps.get_tag.outputs.TAG }}-night.miz" >> $GITHUB_ENV
+      id: filenames
+    - name: Set day start time
+      uses: jacobtomlinson/gha-find-replace@0.1.2
+      with:
+        find: "TVA-PLACEHOLDER-MISSION-STARTTIME"
+        replace: "43200"
+    - name: Set day filename
+      uses: jacobtomlinson/gha-find-replace@0.1.2
+      with:
+        find: "TVA-PLACEHOLDER-MISSION-FILENAME"
+        replace: "${{ env.DAYFILE }}"
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.4.1
+      with:
+        filename: 'TVA-Training-Caucasus-${{ steps.get_tag.outputs.TAG }}.miz'
+        exclusions: '*.git* *.miz *.zip'
+    - name: Reset repository
+      run: git reset --hard
+    - name: Set night start time
+      uses: jacobtomlinson/gha-find-replace@0.1.2
+      with:
+        find: "TVA-PLACEHOLDER-MISSION-STARTTIME"
+        replace: "82800"
+    - name: Set night filename
+      uses: jacobtomlinson/gha-find-replace@0.1.2
+      with:
+        find: "TVA-PLACEHOLDER-MISSION-FILENAME"
+        replace: "${{ env.NIGHTFILE }}"
+    - name: Archive Night Release
+      uses: thedoctor0/zip-release@0.4.1
+      with:
+        filename: 'TVA-Training-Caucasus-${{ steps.get_tag.outputs.TAG }}-night.miz'
+        exclusions: '*.git* *.miz *.zip'
+    - name: Upload Release
+      id: release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        artifacts: "*.miz"
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ steps.get_tag.outputs.TAG }}

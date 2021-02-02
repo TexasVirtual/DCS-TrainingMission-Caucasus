@@ -1,0 +1,6 @@
+mapResource = 
+{
+    ["ResKey_Action_993"] = "ctld_1_73.lua",
+    ["ResKey_Action_406"] = "mist_4_4_80.lua",
+    ["ResKey_Action_407"] = "improved free flight combat respawn.lua",
+} -- end of mapResource
